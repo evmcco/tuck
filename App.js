@@ -1,15 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { addFoodLogItem, getFoodLog, initializeDatabase, clearDatabase, getFoodLogSummary } from './sqlite';
 
-// can I show the history as one huge list below the form? each day has a summary row at the top
-// add a faint separator if logs items are made >30 mins apart to show diff meals/snacks
+// todo add a faint separator if logs items are made >30 mins apart to show diff meals/snacks
 
 export default function App() {
   const [formCals, setFormCals] = useState('')
   const [formName, setFormName] = useState('')
   const [foodLog, setFoodLog] = useState([])
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const nameInputRef = useRef(null);
   const calsInputRef = useRef(null);
 
 
@@ -23,12 +24,34 @@ export default function App() {
     fetchData();
   }, [])
 
+  useEffect(() => {
+  const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', () => {
+    setKeyboardVisible(true);
+  });
+  const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', () => {
+    setKeyboardVisible(false);
+  });
+
+  // Cleanup the event listeners on unmount
+  return () => {
+    keyboardDidShowListener.remove();
+    keyboardDidHideListener.remove();
+  };
+}, []);
 
   const onSubmit = () => {
+    if (!formName || !formCals) {
+      return
+    }
+    if (!!formName && !formCals) {
+      calsInputRef.current.focus();
+      return
+    }
     addFoodLogItem(formName, formCals)
     setFormCals('')
     setFormName('')
     fetchData();
+    nameInputRef.current.focus();
   }
 
   const formatDate = (date) => {
@@ -49,13 +72,15 @@ export default function App() {
             style={styles.nameInput}
             value={formName}
             onChangeText={text => setFormName(text)}
-            placeholder="what did you eat?"
-            placeholderTextColor={'#21212175'}
+            placeholder="food"
+            // placeholderTextColor={'#21212175'}
+            placeholderTextColor={'lightgray'}
             onSubmitEditing={() => {
               if (calsInputRef) {
                 calsInputRef.current.focus();
               }}
             }
+            ref={nameInputRef}
           />
           <TextInput 
             style={styles.calsInput}
@@ -63,7 +88,8 @@ export default function App() {
             onChangeText={num => setFormCals(num)}
             placeholder="cals"
             keyboardType="numeric"
-            placeholderTextColor={'#21212175'}
+            // placeholderTextColor={'#21212175'}
+            placeholderTextColor={'lightgray'}
             ref={calsInputRef}
           />
           <TouchableOpacity onPress={() => onSubmit()}>
@@ -114,6 +140,13 @@ export default function App() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+        <KeyboardAvoidingView behavior="position">
+          {keyboardVisible && <TouchableOpacity onPress={() => {onSubmit()}} style={styles.keyboardSubmitButtonContainer}>
+            <Text style={styles.keyboardSubmitButtonText}>
+              {">>"}
+            </Text>
+          </TouchableOpacity>}
+        </KeyboardAvoidingView>
       </ImageBackground>  
       <StatusBar style="auto"/>
     </View>
@@ -134,6 +167,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginTop: 40,
     marginHorizontal: 10,
+    marginBottom: 10,
   },
   titleText: {
     fontSize: 30,
@@ -154,7 +188,8 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 20,
     textAlign: 'right',
-    backgroundColor: '#21212120',
+    backgroundColor: '#21212175',
+    color: 'lightgrey'
   },
   calsInput: {
     flex: 1,
@@ -163,10 +198,13 @@ const styles = StyleSheet.create({
     padding: 8,
     fontSize: 20,
     marginLeft: 10,
-    backgroundColor: '#21212120',
+    backgroundColor: '#21212175',
+    color: 'lightgrey'
   },
   submitButton: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#a8dadc',
     borderWidth: 1,
     borderColor: '#a8dadc',
@@ -210,9 +248,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginHorizontal: 10,
     marginVertical: 5,
-    borderBottomWidth: 2,
-    borderBottomColor: '#a8dadc',
-    borderBottomStyle: 'solid',
+    borderTopWidth: 2,
+    borderTopColor: '#a8dadc',
+    borderTopStyle: 'solid',
   },
   summaryNameContainer: {
     flex: 3,
@@ -241,5 +279,16 @@ const styles = StyleSheet.create({
   summaryCals: {
     fontSize: 16,
     fontWeight: 'bold'
+  },
+  keyboardSubmitButtonContainer: {
+    backgroundColor: '#a8dadc',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+  },
+  keyboardSubmitButtonText: {
+    color: '#1d3557',
+    fontSize: 20,
   },
 });
