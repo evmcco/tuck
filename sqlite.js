@@ -1,4 +1,5 @@
 import * as SQLite from "expo-sqlite";
+import { generateSampleData } from "./utils/generateSampleData";
 
 const openDatabase = () => {
   if (Platform.OS === "web") {
@@ -15,14 +16,54 @@ const openDatabase = () => {
   return db;
 }
 
+const seedDatabase = () => {
+  const sampleFoodLog = generateSampleData()
+  const values = sampleFoodLog.map(log => `('${log.foodname}', ${log.calories}, '${log.date}')`).join(',');
+  const sql = `INSERT INTO foodlog (foodname, calories, date) VALUES ${values}`;
+
+  const db = openDatabase();
+  // Execute the SQL statement
+  db.transaction(tx => {
+    tx.executeSql(sql, [], (_, result) => {
+      console.log('Rows inserted:', result.rowsAffected);
+    }, error => {
+      console.error('Error inserting rows:', error);
+    });
+  });
+}
+
+// Select data
+export const getFoodLog = () => {
+  return new Promise((resolve, reject) => {
+    const db = openDatabase();
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM foodlog ORDER BY date DESC',
+        [],
+        (tx, { rows: { _array } }) => {
+          const formattedFoodLog = formatFoodLog(_array)
+          resolve(formattedFoodLog);
+        },
+        (_, error) => {
+          reject(error);
+        }
+      );
+    });
+  });
+}
+
 // Create table
-export const initializeDatabase = () => {
+export const initializeDatabase = async () => {
   const db = openDatabase();
   db.transaction(tx => {
     tx.executeSql(
       'CREATE TABLE IF NOT EXISTS foodlog (id INTEGER PRIMARY KEY AUTOINCREMENT, foodname TEXT, calories INTEGER, date TEXT);'
     );
   });
+  const data = await getFoodLog()
+  if (data?.length === 0) {
+    seedDatabase()
+  }
 }
 
 // Insert data
@@ -32,8 +73,7 @@ export const addFoodLogItem = (name, calories) => {
     tx.executeSql(
       'INSERT INTO foodlog (foodname, calories, date) VALUES (?, ?, ?)',
       [name, calories, new Date().toISOString()],
-      (tx, results) => {
-      }
+      (tx, results) => {}
     );
   });
 }
@@ -67,26 +107,7 @@ const formatFoodLog = (foodLog) => {
       currentDayTotal = 0
     }
   }
-}
-
-// Select data
-export const getFoodLog = () => {
-  return new Promise((resolve, reject) => {
-    const db = openDatabase();
-    db.transaction(tx => {
-      tx.executeSql(
-        'SELECT * FROM foodlog ORDER BY date DESC',
-        [],
-        (tx, { rows: { _array } }) => {
-          const formattedFoodLog = formatFoodLog(_array)
-          resolve(formattedFoodLog);
-        },
-        (_, error) => {
-          reject(error);
-        }
-      );
-    });
-  });
+  return formattedFoodLog
 }
 
 // Delete all data

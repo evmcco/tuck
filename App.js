@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageB
 import { useState, useEffect, useRef } from 'react';
 import { addFoodLogItem, getFoodLog, initializeDatabase, clearDatabase, getFoodLogSummary } from './sqlite';
 
+// todo launch to app store
+// todo better styling for bigger phones
 // todo add a faint separator if logs items are made >30 mins apart to show diff meals/snacks
 
 export default function App() {
@@ -15,12 +17,12 @@ export default function App() {
 
 
   const fetchData = async () => {
+    await initializeDatabase()
     const data = await getFoodLog()
     setFoodLog(data)
   }
 
   useEffect(() => {
-    initializeDatabase()
     fetchData();
   }, [])
 
@@ -107,9 +109,9 @@ export default function App() {
             {foodLog?.map((food, index) => {
               if (food.type === 'summary') {
                 return (
-                  <View key={`summary${food.month}${food.day}`} style={styles.summaryRow}>
+                  <View key={`summary${food.month+1}${food.day}`} style={styles.summaryRow}>
                   <View style={styles.summaryNameContainer}>
-                    <Text style={styles.summaryDate}>{`${food.month}/${food.day}`}
+                    <Text style={styles.summaryDate}>{`${food.month+1}/${food.day}`}
                     </Text>
                     <Text style={styles.summaryName}>Total Cals:</Text>
                   </View>
