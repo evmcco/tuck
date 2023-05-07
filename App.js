@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity } from 'react-native';
-import { useState, useEffect } from 'react';
-import { addFoodLogItem, getFoodLog, initializeDatabase } from './sqlite';
+import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { addFoodLogItem, getFoodLog, initializeDatabase, clearDatabase, getFoodLogSummary } from './sqlite';
 
 // can I show the history as one huge list below the form? each day has a summary row at the top
 // add a faint separator if logs items are made >30 mins apart to show diff meals/snacks
@@ -10,6 +10,8 @@ export default function App() {
   const [formCals, setFormCals] = useState('')
   const [formName, setFormName] = useState('')
   const [foodLog, setFoodLog] = useState([])
+  const calsInputRef = useRef(null);
+
 
   const fetchData = async () => {
     const data = await getFoodLog()
@@ -24,22 +26,36 @@ export default function App() {
 
   const onSubmit = () => {
     addFoodLogItem(formName, formCals)
+    setFormCals('')
+    setFormName('')
     fetchData();
+  }
+
+  const formatDate = (date) => {
+    const dayOfTheWeek = new Date(date).getDay()
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    return days[dayOfTheWeek]
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-      >
-        <Text>tuck</Text>
-        <Text>the chill food log</Text>
+      <ImageBackground source={require('./assets/tuckBackground.png')} style={styles.backgroundImage}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleText}>tuck</Text>
+          <Text style={styles.subtitleText}>the chill food log</Text>
+        </View>
         <View style={styles.formContainer}>
           <TextInput 
             style={styles.nameInput}
             value={formName}
             onChangeText={text => setFormName(text)}
             placeholder="what did you eat?"
+            placeholderTextColor={'#21212175'}
+            onSubmitEditing={() => {
+              if (calsInputRef) {
+                calsInputRef.current.focus();
+              }}
+            }
           />
           <TextInput 
             style={styles.calsInput}
@@ -47,6 +63,8 @@ export default function App() {
             onChangeText={num => setFormCals(num)}
             placeholder="cals"
             keyboardType="numeric"
+            placeholderTextColor={'#21212175'}
+            ref={calsInputRef}
           />
           <TouchableOpacity onPress={() => onSubmit()}>
             <View style={styles.submitButton}>
@@ -56,22 +74,47 @@ export default function App() {
             </View>
           </TouchableOpacity>
         </View>
-        <View>
-          {foodLog?.map((food, index) => {
-            console.log("!@# food", index, food)
-            return (
-              <View key={`${food.name}${index}`} style={styles.logRow}>
-                <View style={styles.logNameContainer}>
-                  <Text style={styles.logName}>{food.foodname}</Text>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            {foodLog?.map((food, index) => {
+              if (food.type === 'summary') {
+                return (
+                  <View key={`summary${food.month}${food.day}`} style={styles.summaryRow}>
+                  <View style={styles.summaryNameContainer}>
+                    <Text style={styles.summaryDate}>{`${food.month}/${food.day}`}
+                    </Text>
+                    <Text style={styles.summaryName}>Total Cals:</Text>
+                  </View>
+                  <View style={styles.summaryCalsContainer}>
+                    <Text style={styles.summaryCals}>{food.totalCalories}</Text>
+                  </View>
                 </View>
-                <View style={styles.logCalsContainer}>
-                  <Text style={styles.logCals}>{food.calories}</Text>
+                ) 
+              }
+              return (
+                <View key={`${food.name}${index}`} style={styles.logRow}>
+                  <View style={styles.logNameContainer}>
+                    <Text style={styles.logDate}>{formatDate(food.date)}
+                    </Text>
+                    <Text style={styles.logName}>{food.foodname}</Text>
+                  </View>
+                  <View style={styles.logCalsContainer}>
+                    <Text style={styles.logCals}>{food.calories}</Text>
+                  </View>
                 </View>
-              </View>
-            )
-          })}
-        </View>
-      </ScrollView>
+              )
+            })}
+            <TouchableOpacity onPress={() => {
+              clearDatabase()
+              fetchData()
+            }}>
+              <Text style={{color: 'red'}}>RESET DATA</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </ImageBackground>  
       <StatusBar style="auto"/>
     </View>
   );
@@ -81,7 +124,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fefae0',
-    paddingTop: 50,
+  },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: "cover",
+    width: '100%',
+    height: '100%',
+  },
+  titleContainer: {
+    marginTop: 40,
+    marginHorizontal: 10,
+  },
+  titleText: {
+    fontSize: 30,
+  },
+  subtitleText: {
+    fontSize: 20,
   },
   formContainer: {
     flexDirection: 'row',
@@ -92,18 +150,20 @@ const styles = StyleSheet.create({
   nameInput: {
     flex: 3,
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#21212120',
     padding: 8,
     fontSize: 20,
     textAlign: 'right',
+    backgroundColor: '#21212120',
   },
   calsInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#21212120',
     padding: 8,
     fontSize: 20,
     marginLeft: 10,
+    backgroundColor: '#21212120',
   },
   submitButton: {
     flex: 1,
@@ -124,18 +184,62 @@ const styles = StyleSheet.create({
   logNameContainer: {
     flex: 3,
     padding: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between'
   },
+  logDate: {
+    fontSize: 12,
+    color: 'grey',
+  },  
   logName: {
     fontSize: 16,
     textAlign: 'right',
   },
-  
   logCalsContainer: {
     flex: 2,
     padding: 8,
     marginLeft: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
   logCals: {
     fontSize: 16
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderBottomWidth: 2,
+    borderBottomColor: '#a8dadc',
+    borderBottomStyle: 'solid',
+  },
+  summaryNameContainer: {
+    flex: 3,
+    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between'
+  },
+  summaryDate: {
+    fontSize: 12,
+    color: 'grey',
+    fontWeight: 'bold',
+  },  
+  summaryName: {
+    fontSize: 16,
+    textAlign: 'right',
+    fontWeight: 'bold'
+  },
+  summaryCalsContainer: {
+    flex: 2,
+    padding: 8,
+    marginLeft: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  summaryCals: {
+    fontSize: 16,
+    fontWeight: 'bold'
   },
 });
