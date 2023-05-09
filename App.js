@@ -156,7 +156,7 @@ export default function App() {
                 <View key={`summary${item.month+1}${item.day}`} style={styles.summaryRow}>
                   <View style={styles.summaryNameContainer}>
                     <Text style={styles.summaryDate}>{`${item.month+1}/${item.day}`}</Text>
-                    <Text style={styles.summaryName}>Total Cals:</Text>
+                    <Text style={styles.summaryName}>total</Text>
                   </View>
                   <View style={styles.summaryCalsContainer}>
                     <Text style={styles.summaryCals}>{item.totalCalories}</Text>
@@ -168,7 +168,7 @@ export default function App() {
                 <View key={`${item.name}`} style={styles.logRow}>
                   <View style={styles.logNameContainer}>
                     <Text style={styles.logDate}>{formatDate(item.date)}</Text>
-                    <Text style={styles.logName}>{item.foodname}</Text>
+                    <Text style={styles.logName} numberOfLines={1}>{item.foodname}</Text>
                   </View>
                   <View style={styles.logCalsContainer}>
                     <Text style={styles.logCals}>{item.calories}</Text>
@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   nameInput: {
-    flex: 3,
+    // flex: 3,
+    width: '60%',
     borderWidth: 1,
     borderColor: '#42424220',
     padding: 8,
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   calsInput: {
-    flex: 1,
+    width: '20%',
     borderWidth: 1,
     borderColor: '#42424220',
     padding: 8,
@@ -250,7 +251,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   submitButton: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#a8dadc',
@@ -269,7 +269,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   logNameContainer: {
-    flex: 3,
+    // flex: 3,
+    width: '60%',
     paddingHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -285,9 +286,10 @@ const styles = StyleSheet.create({
     color: '#424242'
   },
   logCalsContainer: {
-    flex: 2,
-    padding: 8,
-    marginLeft: 10,
+    // flex: 2,
+    width: '20%',
+    paddingVertical: 8,
+    marginHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -305,7 +307,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   summaryNameContainer: {
-    flex: 3,
+    // flex: 3,
+    width: '60%',
     paddingHorizontal: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -322,7 +325,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   summaryCalsContainer: {
-    flex: 2,
+    // flex: 2,
+    width: '20%',
     paddingLeft: 8,
     flexDirection: 'row',
   },
