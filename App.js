@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Keyboard } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, ImageBackground, KeyboardAvoidingView, Keyboard, FlatList } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { addFoodLogItem, getFoodLog, initializeDatabase, clearDatabase, getFoodLogSummary } from './sqlite';
 
@@ -54,6 +55,9 @@ export default function App() {
     setFormName('')
     fetchData();
     nameInputRef.current.focus();
+    Haptics.notificationAsync(
+      Haptics.NotificationFeedbackType.Success
+    )
   }
 
   const formatDate = (date) => {
@@ -75,7 +79,7 @@ export default function App() {
             value={formName}
             onChangeText={text => setFormName(text)}
             placeholder="food"
-            // placeholderTextColor={'#21212175'}
+            // placeholderTextColor={'#42424275'}
             placeholderTextColor={'lightgray'}
             onSubmitEditing={() => {
               if (calsInputRef) {
@@ -90,7 +94,7 @@ export default function App() {
             onChangeText={num => setFormCals(num)}
             placeholder="cals"
             keyboardType="numeric"
-            // placeholderTextColor={'#21212175'}
+            // placeholderTextColor={'#42424275'}
             placeholderTextColor={'lightgray'}
             ref={calsInputRef}
           />
@@ -102,7 +106,7 @@ export default function App() {
             </View>
           </TouchableOpacity>
         </View>
-        <ScrollView
+        {/* <ScrollView
           keyboardShouldPersistTaps="handled"
         >
           <View>
@@ -141,7 +145,47 @@ export default function App() {
               <Text style={{color: 'red'}}>RESET DATA</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </ScrollView> */}
+        <FlatList
+          data={foodLog}
+          keyExtractor={(item, index) => `${item.name}${index}`}
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => {
+            if (item.type === 'summary') {
+              return (
+                <View key={`summary${item.month+1}${item.day}`} style={styles.summaryRow}>
+                  <View style={styles.summaryNameContainer}>
+                    <Text style={styles.summaryDate}>{`${item.month+1}/${item.day}`}</Text>
+                    <Text style={styles.summaryName}>Total Cals:</Text>
+                  </View>
+                  <View style={styles.summaryCalsContainer}>
+                    <Text style={styles.summaryCals}>{item.totalCalories}</Text>
+                  </View>
+                </View>
+              );
+            } else {
+              return (
+                <View key={`${item.name}`} style={styles.logRow}>
+                  <View style={styles.logNameContainer}>
+                    <Text style={styles.logDate}>{formatDate(item.date)}</Text>
+                    <Text style={styles.logName}>{item.foodname}</Text>
+                  </View>
+                  <View style={styles.logCalsContainer}>
+                    <Text style={styles.logCals}>{item.calories}</Text>
+                  </View>
+                </View>
+              );
+            }
+          }}
+          ListFooterComponent={() => (
+            <TouchableOpacity onPress={() => {
+              clearDatabase();
+              fetchData();
+            }}>
+              <Text style={{ color: 'red' }}>RESET DATA</Text>
+            </TouchableOpacity>
+          )}
+        />
         <KeyboardAvoidingView behavior="position">
           {keyboardVisible && <TouchableOpacity onPress={() => {onSubmit()}} style={styles.keyboardSubmitButtonContainer}>
             <Text style={styles.keyboardSubmitButtonText}>
@@ -168,7 +212,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     marginTop: 40,
-    marginHorizontal: 10,
+    marginHorizontal: 20,
     marginBottom: 10,
   },
   titleText: {
@@ -181,27 +225,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    marginHorizontal: 10,
+    marginHorizontal: 20,
   },
   nameInput: {
     flex: 3,
     borderWidth: 1,
-    borderColor: '#21212120',
+    borderColor: '#42424220',
     padding: 8,
     fontSize: 20,
     textAlign: 'right',
-    backgroundColor: '#21212175',
-    color: 'lightgrey'
+    backgroundColor: '#42424275',
+    color: '#EEEEEE',
+    borderRadius: 5,
   },
   calsInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#21212120',
+    borderColor: '#42424220',
     padding: 8,
     fontSize: 20,
     marginLeft: 10,
-    backgroundColor: '#21212175',
-    color: 'lightgrey'
+    backgroundColor: '#42424275',
+    color: '#EEEEEE',
+    borderRadius: 5,
   },
   submitButton: {
     flex: 1,
@@ -212,6 +258,7 @@ const styles = StyleSheet.create({
     borderColor: '#a8dadc',
     padding: 8,
     marginLeft: 10,
+    borderRadius: 5,
   },
   submitButtonText: {
     color: '#1d3557',
@@ -219,68 +266,69 @@ const styles = StyleSheet.create({
   },
   logRow: {
     flexDirection: 'row',
-    marginHorizontal: 10,
+    marginHorizontal: 20,
   },
   logNameContainer: {
     flex: 3,
-    padding: 8,
+    paddingHorizontal: 8,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between'
   },
   logDate: {
     fontSize: 12,
-    color: 'grey',
+    color: '#424242',
   },  
   logName: {
     fontSize: 16,
     textAlign: 'right',
+    color: '#424242'
   },
   logCalsContainer: {
     flex: 2,
     padding: 8,
     marginLeft: 10,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
   },
   logCals: {
-    fontSize: 16
+    fontSize: 16,
+    color: '#424242'
   },
   summaryRow: {
     flexDirection: 'row',
-    marginHorizontal: 10,
+    alignItems: 'center',
+    marginHorizontal: 20,
+    paddingVertical: 4,
     marginVertical: 5,
-    borderTopWidth: 2,
-    borderTopColor: '#a8dadc',
-    borderTopStyle: 'solid',
+    backgroundColor: '#42424215',
+    borderRadius: 5,
   },
   summaryNameContainer: {
     flex: 3,
-    padding: 8,
+    paddingHorizontal: 8,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between'
   },
   summaryDate: {
     fontSize: 12,
-    color: 'grey',
+    color: '#424242',
     fontWeight: 'bold',
   },  
   summaryName: {
     fontSize: 16,
     textAlign: 'right',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   summaryCalsContainer: {
     flex: 2,
-    padding: 8,
-    marginLeft: 10,
+    paddingLeft: 8,
     flexDirection: 'row',
-    alignItems: 'flex-end',
   },
   summaryCals: {
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   keyboardSubmitButtonContainer: {
     backgroundColor: '#a8dadc',
