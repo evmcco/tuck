@@ -61,9 +61,10 @@ export const initializeDatabase = async () => {
     );
   });
   const data = await getFoodLog()
-  if (data?.length === 0) {
-    seedDatabase()
-  }
+  // this should only run for testing purposes
+  // if (data?.length === 0) {
+  //   seedDatabase()
+  // }
 }
 
 // Insert data

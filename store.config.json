@@ -1,0 +1,13 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "info": {
+      "en-US": {
+        "title": "tuck - the chill food log",
+        "subtitle": "track your eating",
+        "description": "Tuck - the chill food log is a place to thoughtfully and peacefully reflect on the food you eat every day. No need to perfect the calorie counts, it's better to use your best guess and estimate.",
+        "keywords": ["nutrition", "diet", "food log", "calories"]
+      }
+    }
+  }
+}

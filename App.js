@@ -43,11 +43,14 @@ export default function App() {
 }, []);
 
   const onSubmit = () => {
-    if (!formName || !formCals) {
+    //if name is filled out but not cals, move to cals
+    if (!!formName && !formCals) {
+      console.log("@@@ moving to cals")
+      calsInputRef.current.focus();
       return
     }
-    if (!!formName && !formCals) {
-      calsInputRef.current.focus();
+    //if neither are filled out, do nothing
+    if (!formName || !formCals) {
       return
     }
     addFoodLogItem(formName, formCals)
@@ -106,46 +109,22 @@ export default function App() {
             </View>
           </TouchableOpacity>
         </View>
-        {/* <ScrollView
-          keyboardShouldPersistTaps="handled"
-        >
-          <View>
-            {foodLog?.map((food, index) => {
-              if (food.type === 'summary') {
-                return (
-                  <View key={`summary${food.month+1}${food.day}`} style={styles.summaryRow}>
-                  <View style={styles.summaryNameContainer}>
-                    <Text style={styles.summaryDate}>{`${food.month+1}/${food.day}`}
-                    </Text>
-                    <Text style={styles.summaryName}>Total Cals:</Text>
-                  </View>
-                  <View style={styles.summaryCalsContainer}>
-                    <Text style={styles.summaryCals}>{food.totalCalories}</Text>
-                  </View>
-                </View>
-                ) 
-              }
-              return (
-                <View key={`${food.name}${index}`} style={styles.logRow}>
-                  <View style={styles.logNameContainer}>
-                    <Text style={styles.logDate}>{formatDate(food.date)}
-                    </Text>
-                    <Text style={styles.logName}>{food.foodname}</Text>
-                  </View>
-                  <View style={styles.logCalsContainer}>
-                    <Text style={styles.logCals}>{food.calories}</Text>
-                  </View>
-                </View>
-              )
-            })}
-            <TouchableOpacity onPress={() => {
-              clearDatabase()
-              fetchData()
-            }}>
-              <Text style={{color: 'red'}}>RESET DATA</Text>
-            </TouchableOpacity>
+        {foodLog.length === 0 && 
+          <View style={styles.helpTextContainer}>
+            <Text style={styles.helpText}>
+              welcome to tuck - the chill food log. this a peaceful space to reflect on what you have eaten today
+            </Text>
+            <Text style={styles.helpText}>
+              tap into the food field and provide a short description of what you ate. For example, you can say latte, cereal with oat milk, or tacos
+            </Text>
+            <Text style={styles.helpText}>
+              you can tap the <View style={styles.helpTextBlueContainer}><Text style={styles.helpTextBlue}>{'>>'}</Text></View> button to move to the cals field, where you can enter how many calories the food contained. be chill and estimate the calories, don't worry about being exact
+            </Text>
+            <Text style={styles.helpText}>
+              tap the <View style={styles.helpTextBlueContainer}><Text style={styles.helpTextBlue}>{'>>'}</Text></View> to submit your food log entry
+            </Text>
           </View>
-        </ScrollView> */}
+        }
         <FlatList
           data={foodLog}
           keyExtractor={(item, index) => `${item.name}${index}`}
@@ -177,14 +156,6 @@ export default function App() {
               );
             }
           }}
-          ListFooterComponent={() => (
-            <TouchableOpacity onPress={() => {
-              clearDatabase();
-              fetchData();
-            }}>
-              <Text style={{ color: 'red' }}>RESET DATA</Text>
-            </TouchableOpacity>
-          )}
         />
         <KeyboardAvoidingView behavior="position">
           {keyboardVisible && <TouchableOpacity onPress={() => {onSubmit()}} style={styles.keyboardSubmitButtonContainer}>
@@ -211,9 +182,8 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   titleContainer: {
-    marginTop: 40,
+    marginTop: 50,
     marginHorizontal: 20,
-    marginBottom: 10,
   },
   titleText: {
     fontSize: 30,
@@ -224,7 +194,7 @@ const styles = StyleSheet.create({
   formContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginVertical: 20,
     marginHorizontal: 20,
   },
   nameInput: {
@@ -263,6 +233,31 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#1d3557',
     fontSize: 20,
+  },
+  helpTextContainer: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    backgroundColor: '#42424215',
+    paddingBottom: 20,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+  },
+  helpText: {
+    marginTop: 20, 
+    fontSize: 16,
+  },
+  helpTextBlueContainer: {
+    backgroundColor: '#a8dadc',
+    borderWidth: 1,
+    borderColor: '#a8dadc',
+    paddingHorizontal: 4,
+    borderRadius: 5,
+    height: 20,
+    marginTop: -3,
+  },  
+  helpTextBlue: {
+    color: '#1d3557',
+    fontSize: 16,
   },
   logRow: {
     flexDirection: 'row',

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "tuck",
+    "name": "tuck - the chill food log",
     "slug": "tuck",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.evmcco.tuck"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0c9f8208-be2b-4649-b521-a17c160b1f2f"
+      }
     }
   }
 }
